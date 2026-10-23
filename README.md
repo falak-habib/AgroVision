@@ -1,7 +1,5 @@
-# AgroVision
-AI-powered crop leaf disease screening using deep learning, transfer learning, and confidence-based expert referral.
-
 # AgroVision 🌿
+AI-powered crop leaf disease screening using deep learning, transfer learning, and confidence-based expert referral.
 
 AgroVision is an AI-powered crop leaf screening system that uses deep learning to identify supported plant health conditions from leaf images. Users can upload a photograph of a crop leaf, and the trained model predicts the corresponding healthy or disease class along with its confidence score.
 
