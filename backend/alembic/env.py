@@ -17,6 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from backend.app.core.config import get_settings
 from backend.app.db.base import Base
+import backend.app.models  # noqa: F401 - register all SQLAlchemy models with Base.metadata
 
 config = getattr(context, "config", None)
 

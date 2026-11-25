@@ -25,10 +25,11 @@ def test_alembic_ini_configuration():
 
 
 def test_alembic_target_metadata():
-    """Verify Alembic target metadata references Base.metadata."""
+    """Verify Alembic target metadata references Base.metadata and includes users table."""
     from backend.alembic.env import target_metadata
 
     assert target_metadata is Base.metadata
+    assert "users" in target_metadata.tables
 
 
 def test_alembic_script_mako_template():

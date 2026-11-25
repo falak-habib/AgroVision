@@ -3,8 +3,9 @@ AgroVision centralized configuration management using pydantic-settings.
 """
 
 from functools import lru_cache
+import secrets
 from typing import List, Union
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,6 +26,12 @@ class Settings(BaseSettings):
 
     # Database configuration (PostgreSQL with Psycopg 3 driver)
     DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/agrovision"
+
+    # JWT Authentication configuration
+    # Uses a cryptographically random ephemeral secret in dev if not set in environment.
+    JWT_SECRET_KEY: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # CORS configuration
     CORS_ORIGINS: List[str] = [

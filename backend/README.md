@@ -112,7 +112,69 @@ alembic current
 
 ---
 
-## 3. API Endpoints & Health Check System
+## 3. Authentication & User Management (JWT)
+
+### 3.1 Authentication Architecture
+- **Password Hashing:** Uses **Argon2id** via `pwdlib[argon2]`. Plaintext passwords are never stored or returned.
+- **Stateless Tokens:** Uses **PyJWT** (`HS256` by default) to issue signed Bearer tokens containing `sub` (user ID), `iat` (issued at), and `exp` (expiration).
+- **Protected Routes:** Depend on `get_current_user` (`backend/app/api/deps.py`), which validates the Bearer token, loads the user from PostgreSQL, and verifies `is_active=True`.
+
+### 3.2 JWT Environment Variables
+Add these variables to `.env` (see `.env.example` for placeholders):
+- `JWT_SECRET_KEY`: Cryptographically random 32+ byte secret key (never commit real secrets).
+- `JWT_ALGORITHM`: Signing algorithm (default: `HS256`).
+- `ACCESS_TOKEN_EXPIRE_MINUTES`: Token lifetime in minutes (default: `30`).
+
+### 3.3 Authentication Endpoints
+
+#### Register a New User — `POST /api/v1/auth/register` (HTTP 201)
+Request (`application/json`):
+```json
+{
+  "full_name": "Aarav Sharma",
+  "email": "farmer@example.com",
+  "password": "StrongPassword123!"
+}
+```
+Response (`201 Created`):
+```json
+{
+  "id": 1,
+  "full_name": "Aarav Sharma",
+  "email": "farmer@example.com",
+  "is_active": true,
+  "created_at": "2026-11-25T10:50:00Z",
+  "updated_at": "2026-11-25T10:50:00Z"
+}
+```
+
+#### Login — `POST /api/v1/auth/login` (HTTP 200)
+Request (`application/x-www-form-urlencoded`, OAuth2 Password Flow):
+- `username`: `farmer@example.com`
+- `password`: `StrongPassword123!`
+
+Response (`200 OK`):
+```json
+{
+  "access_token": "<jwt_token>",
+  "token_type": "bearer"
+}
+```
+
+#### Get Current User Profile — `GET /api/v1/auth/me` (HTTP 200)
+Header: `Authorization: Bearer <jwt_token>`
+Returns the authenticated user's safe profile (`UserResponse`).
+
+### 3.4 Using Bearer Tokens in Swagger UI
+1. Open `http://127.0.0.1:8000/docs`.
+2. Register a user via `POST /api/v1/auth/register`.
+3. Click the **Authorize** button at the top-right of Swagger UI.
+4. Enter your registered **email** in the `username` field and your **password** in the `password` field, then click **Authorize**.
+5. Swagger will automatically call `/api/v1/auth/login` and attach the `Authorization: Bearer <token>` header to protected requests such as `GET /api/v1/auth/me`.
+
+---
+
+## 4. API Endpoints & Health Check System
 
 | Endpoint | Method | Description |
 | :--- | :---: | :--- |
@@ -152,12 +214,16 @@ alembic current
 
 ---
 
-## 4. Running Automated Tests
+## 5. Running Automated Tests
 
-### 4.1 Backend Unit & Integration Tests
-Runs the full backend test suite covering configuration, database session lifecycle, connection error handling, Alembic setup, and health/readiness endpoints:
+### 5.1 Backend Unit & Integration Tests (Health, DB, Alembic, Auth)
+Runs the full backend test suite:
 ```bash
 pytest backend/tests -v
+```
+Run authentication tests specifically:
+```bash
+pytest backend/tests/test_auth.py -v
 ```
 
 > **Note:** The unit test suite utilizes in-memory SQLite and mock connection interfaces. An externally running PostgreSQL instance is **not** required to execute the test suite.
